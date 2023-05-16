@@ -8,12 +8,6 @@ from uuid import uuid1
 import torch
 
 # %%
-pipeline = DiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
-if torch.cuda.is_available():
-    pipeline.to("cuda")  # type: ignore
-    pipeline.enable_attention_slicing()  # type: ignore
-
-# %%
 persons = [
     "magician",
     "wizard",
@@ -83,6 +77,15 @@ artists = [
 
 
 # %%
+def create_pipeline():
+    pipeline = DiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
+    if torch.cuda.is_available():
+        pipeline.to("cuda")  # type: ignore
+        # pipeline.enable_attention_slicing()  # type: ignore
+    return pipeline
+
+
+# %%
 class PromptGenerator:
     def __init__(self) -> None:
         self.persons = persons
@@ -122,8 +125,8 @@ generate_prompt()
 
 
 # %%
-def generate_image(generate_prompt=generate_prompt):
-    prompt = PromptGenerator().prompt()
+def generate_image(pipeline, generate_prompt=generate_prompt):
+    prompt = generate_prompt()
     id = uuid1().hex[:8]
     image = pipeline(prompt).images[0]  # type: ignore
     return id, prompt, image
@@ -131,9 +134,9 @@ def generate_image(generate_prompt=generate_prompt):
 
 # %%
 def generate_and_save_image(
-    output_dir: Path = Path("/tmp"), generate_prompt=generate_prompt
+    pipeline, output_dir: Path = Path("/tmp"), generate_prompt=generate_prompt
 ):
-    id, prompt, image = generate_image(generate_prompt)
+    id, prompt, image = generate_image(pipeline, generate_prompt=generate_prompt)
     prompt_file = output_dir / f"prompt-{id}.txt"
     image_file = output_dir / f"img-{id}.png"
     with open(prompt_file, "w") as f:
@@ -143,10 +146,12 @@ def generate_and_save_image(
 
 
 # %%
-def generate_and_display_image(output_dir="/tmp", generate_prompt=generate_prompt):
+def generate_and_display_image(
+    pipeline, output_dir="/tmp", generate_prompt=generate_prompt
+):
     output_dir = Path(output_dir)
     id, prompt_file, image_file = generate_and_save_image(
-        output_dir=output_dir, generate_prompt=generate_prompt
+        pipeline, output_dir=output_dir, generate_prompt=generate_prompt
     )
     img = Image.open(output_dir / image_file)
     with open(output_dir / prompt_file) as f:
@@ -157,4 +162,10 @@ def generate_and_display_image(output_dir="/tmp", generate_prompt=generate_promp
 
 
 # %%
-generate_and_display_image()
+if __name__ == "__main__":
+    pass
+else:
+    pipeline = create_pipeline()
+    generate_and_display_image(pipeline)
+
+# %%

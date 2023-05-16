@@ -3,14 +3,15 @@ from confluent_kafka import Producer
 import json
 import logging
 
+from common import create_fastapi_app
+
 log = logging.getLogger("uvicorn")
-
-
 app = create_fastapi_app()
 
 
 class Order(BaseModel):
-    cart: list
+    line_items: list
+    order_id: int | None = None
 
 
 def delivery_report(err, msg):
@@ -24,6 +25,10 @@ def delivery_report(err, msg):
 async def create_order(order: Order):
     p = Producer({'bootstrap.servers': 'localhost:9092'})
     data = order.dict()
+    if data:
+        data["order_id"] = f"{data.get('order_id', 1):08}"
+    else:
+        data["order_id"] = "00000001"
     p.produce('orders', value=json.dumps(data), callback=delivery_report)
     p.flush()
 

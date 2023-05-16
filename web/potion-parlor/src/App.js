@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Button, Dropdown, Input, List, Container, Header, Icon } from 'semantic-ui-react';
 
+function createRandomOrderId() {
+    return Math.floor(Math.random() * 100000000);
+}
+
 const App = () => {
     const [cart, setCart] = useState([]);
     const [selectedPotion, setSelectedPotion] = useState('');
@@ -12,22 +16,21 @@ const App = () => {
 
     const addToCart = () => {
         if (selectedPotion === '' || quantity == 0) return;
-        const newOrder = { potion: selectedPotion, quantity };
-        setCart(prevCart => [...prevCart, newOrder]);
+        const newLineItem = { potion: selectedPotion, quantity };
+        setCart(prevCart => [...prevCart, newLineItem]);
         setSelectedPotion('');
         setQuantity(1);
     };
 
     const sendOrder = async () => {
-        const orderJSON = JSON.stringify({"cart": cart});
+        const orderJSON = JSON.stringify({ "order_id": createRandomOrderId(), "line_items": cart });
 
         try {
             console.log('Sending order...');
             console.log(orderJSON);
             const response = await axios.post('http://localhost:3001/order', orderJSON, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Content-Type': 'application/json'
                 }
             });
             console.log(response.data);

@@ -40,7 +40,7 @@ while True:
         logging.info(f"Message received: {msg_value}")
         try:
             order = json.loads(msg_value)
-            for item in order["cart"]:
+            for item in order["line_items"]:
                 p.produce(
                     item["potion"].lower(), json.dumps(item), callback=delivery_report
                 )

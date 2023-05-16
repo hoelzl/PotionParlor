@@ -11,9 +11,12 @@ will need to run each service manually:
 | Directory           | Command                                          |
 |:--------------------| :---------------------                           |
 | `kafka-cluster`     | `docker-compose up -d`                           |
-| `tools`             | `python create_topicx.py`                        |
-| `web/potion-parlor` | `npm start`                                      |
+| `tools`             | `python create_topics.py`(*)                     |
+| `web/potion-parlor` | `node install`(*)                                |
+|                     | `npm start`                                      |
 | `services`          | `uvicorn order_service:app --port 3001 --reload` |
 | `services`          | `python dispatcher.py`                           |
+
+The commands marked with (*) only need to be run once.
 
 Then browse to <http://localhost:3000> and order potions!
