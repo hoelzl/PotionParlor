@@ -11,6 +11,7 @@ import torch
 pipeline = DiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
 if torch.cuda.is_available():
     pipeline.to("cuda")  # type: ignore
+    pipeline.enable_attention_slicing()  # type: ignore
 
 # %%
 persons = [
@@ -56,7 +57,7 @@ activities = [
     "glowing",
     "sparkling",
 ]
-people = [
+artists = [
     "Rembrandt",
     "Norman Rockwell",
     "Patrick Nagel",
@@ -82,40 +83,57 @@ people = [
 
 
 # %%
+class PromptGenerator:
+    def __init__(self) -> None:
+        self.persons = persons
+        self.styles = styles
+        self.potions = potions
+        self.bottles = bottles
+        self.colors = colors
+        self.activities = activities
+        self.artists = artists
+
+    def prompt(self) -> str:
+        if random() < 0.3:
+            result = (
+                f"image of a {choice(self.persons)} holding a "
+                f"{choice(self.bottles)} in which a {choice(self.colors)} "
+                f"{choice(self.potions)} is {choice(self.activities)}"
+            )
+        else:
+            result = (
+                f"image of a {choice(self.bottles)} in which a {choice(self.colors)} "
+                f"{choice(self.potions)} is {choice(self.activities)}"
+            )
+        if random() < 0.4:
+            result = "An " + result + f" in the style of {choice(self.artists)}"
+        else:
+            result = f"A {choice(self.styles)} " + result
+        return result
+
+
+# %%
 def generate_prompt():
-    if random() < 0.3:
-        result = (
-            f"image of a {choice(persons)} holding a "
-            f"{choice(bottles)} in which a {choice(colors)} "
-            f"{choice(potions)} is {choice(activities)}"
-        )
-    else:
-        result = (
-            f"image of a {choice(bottles)} in which a {choice(colors)} "
-            f"{choice(potions)} is {choice(activities)}"
-        )
-    if random() < 0.4:
-        result = "An " + result + f" in the style of {choice(people)}"
-    else:
-        result = f"A {choice(styles)} " + result
-    return result
+    return PromptGenerator().prompt()
 
 
 # %%
-# generate_prompt()
+generate_prompt()
 
 
 # %%
-def generate_image():
-    prompt = generate_prompt()
+def generate_image(generate_prompt=generate_prompt):
+    prompt = PromptGenerator().prompt()
     id = uuid1().hex[:8]
     image = pipeline(prompt).images[0]  # type: ignore
     return id, prompt, image
 
 
 # %%
-def generate_and_save_image(output_dir: Path = Path("/tmp")):
-    id, prompt, image = generate_image()
+def generate_and_save_image(
+    output_dir: Path = Path("/tmp"), generate_prompt=generate_prompt
+):
+    id, prompt, image = generate_image(generate_prompt)
     prompt_file = output_dir / f"prompt-{id}.txt"
     image_file = output_dir / f"img-{id}.png"
     with open(prompt_file, "w") as f:
@@ -125,9 +143,11 @@ def generate_and_save_image(output_dir: Path = Path("/tmp")):
 
 
 # %%
-def generate_and_display_image(output_dir="/tmp"):
+def generate_and_display_image(output_dir="/tmp", generate_prompt=generate_prompt):
     output_dir = Path(output_dir)
-    id, prompt_file, image_file = generate_and_save_image(output_dir)
+    id, prompt_file, image_file = generate_and_save_image(
+        output_dir=output_dir, generate_prompt=generate_prompt
+    )
     img = Image.open(output_dir / image_file)
     with open(output_dir / prompt_file) as f:
         prompt = f.read()
@@ -135,4 +155,6 @@ def generate_and_display_image(output_dir="/tmp"):
     display(img)
     return id, prompt_file, image_file
 
+
 # %%
+generate_and_display_image()
