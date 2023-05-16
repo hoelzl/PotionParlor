@@ -15,4 +15,4 @@ will need to run each service manually:
 | `order-service`     | `uvicorn order_service:app --port 3001 --reload` |
 | `dispatcher`        | `python dispatcher.py`                           |
 
-Then browse to [http://localhost:3000] and order potions!
+Then browse to http://localhost:3000 and order potions!
