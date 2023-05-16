@@ -2,9 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from confluent_kafka import Producer
+import json
 import logging
 
 log = logging.getLogger("uvicorn")
+
 app = FastAPI()
 
 # Add CORS middleware
@@ -32,7 +34,7 @@ def delivery_report(err, msg):
 async def create_order(order: Order):
     p = Producer({'bootstrap.servers': 'localhost:9092'})
     data = order.dict()
-    p.produce('orders', value=str(data), callback=delivery_report)
+    p.produce('orders', value=json.dumps(data), callback=delivery_report)
     p.flush()
 
     return {"message": "Order sent to Kafka"}
