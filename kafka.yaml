@@ -1,0 +1,30 @@
+name: kafka
+channels:
+  - pytorch
+  - nvidia
+  - xformers
+  - conda-forge
+dependencies:
+  - python[version='>=3.11']
+  - accelerate
+  - autopep8
+  - black
+  - cookiecutter
+  - diffusers
+  - fastapi
+  - ipython
+  - mypy
+  - jinja2
+  - pip
+  - pytest
+  - pytest-cov
+  - pytorch
+  - pytorch-cuda=11.7
+  - python-build
+  - python-confluent-kafka
+  - torchvision
+  - torchaudio
+  - transformers
+  - typer
+  - uvicorn
+  - xformers
