@@ -19,12 +19,17 @@ const App = () => {
     };
 
     const sendOrder = async () => {
-        const orderJSON = JSON.stringify(cart);
+        const orderJSON = JSON.stringify({"cart": cart});
 
         try {
             console.log('Sending order...');
             console.log(orderJSON);
-            const response = await axios.post('http://localhost:3001/order', orderJSON);
+            const response = await axios.post('http://localhost:3001/order', orderJSON, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
             console.log(response.data);
             setCart([]);
         } catch (error) {
@@ -40,7 +45,7 @@ const App = () => {
                     Potion Parlor<Icon name="flask" />
                 </span>
             </div>
-            <Header as='h1'>Order Form</Header>
+            <Header as='h2'>Order Form</Header>
             <Dropdown
                 placeholder='Select Potion'
                 fluid
