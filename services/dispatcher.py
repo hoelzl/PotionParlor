@@ -1,54 +1,31 @@
-from confluent_kafka import Consumer, Producer
 import json
 import logging
 
+from common import make_delivery_callback, known_potion_topics, run_processor
+
 logging.basicConfig(level=logging.INFO)
 
-# Consumer setup
-c = Consumer(
-    {
-        "bootstrap.servers": "localhost:9092",
-        "group.id": "dispatcher",
-        "auto.offset.reset": "earliest",
-    }
-)
 
-c.subscribe(["orders"])
-
-# Producer setup
-p = Producer({"bootstrap.servers": "localhost:9092"})
-
-
-def delivery_report(err, msg):
-    if err is not None:
-        logging.info("Message delivery failed: {err}")
+def process_message(producer, msg_topic, msg_key, msg_value):
+    if msg_topic == "orders":
+        dispatch_order(producer, msg_key, msg_value)
     else:
-        logging.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+        logging.info(f"Unknown topic: {msg_topic}")
 
 
-while True:
-    try:
-        msg = c.poll(1.0)
+def dispatch_order(producer, msg_key, msg_value):
+    order = json.loads(msg_value)
+    for item in order["line_items"]:
+        topic = item["potion"].lower()
+        if topic not in known_potion_topics:
+            topic = "unknown-potions"
+        producer.produce(
+            topic,
+            key=msg_key,
+            value=json.dumps(item),
+            on_delivery=make_delivery_callback("dispatcher", logging),
+        )
 
-        if msg is None:
-            continue
-        if msg.error():
-            print(f"Consumer error: {msg.error()}")
-            continue
 
-        msg_value = msg.value().decode("utf-8")
-        logging.info(f"Message received: {msg_value}")
-        try:
-            order = json.loads(msg_value)
-            for item in order["line_items"]:
-                p.produce(
-                    item["potion"].lower(), json.dumps(item), callback=delivery_report
-                )
-        except json.decoder.JSONDecodeError as e:
-            logging.error(f"Invalid JSON: {e}")
-
-        p.flush()
-    except KeyboardInterrupt:
-        break
-
-c.close()
+if __name__ == "__main__":
+    run_processor("dispatcher", ["orders"], process_message)

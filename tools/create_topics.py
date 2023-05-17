@@ -8,11 +8,14 @@ a = AdminClient({"bootstrap.servers": "localhost:9092"})
 # %%
 new_topics = [
     NewTopic("orders", num_partitions=3, replication_factor=1),
+    NewTopic("received-orders", num_partitions=3, replication_factor=1),
+    NewTopic("completed-orders", num_partitions=3, replication_factor=1),
     NewTopic("invisibility", num_partitions=3, replication_factor=1),
     NewTopic("flying", num_partitions=3, replication_factor=1),
     NewTopic("healing", num_partitions=3, replication_factor=1),
     NewTopic("strength", num_partitions=3, replication_factor=1),
     NewTopic("intelligence", num_partitions=3, replication_factor=1),
+    NewTopic("unknown-potions", num_partitions=3, replication_factor=1),
 ]
 
 # %%

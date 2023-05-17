@@ -15,7 +15,7 @@ const App = () => {
         .map(potion => ({ key: potion, text: potion, value: potion }));
 
     const addToCart = () => {
-        if (selectedPotion === '' || quantity == 0) return;
+        if (selectedPotion === "" || quantity === "0") return;
         const newLineItem = { potion: selectedPotion, quantity };
         setCart(prevCart => [...prevCart, newLineItem]);
         setSelectedPotion('');
