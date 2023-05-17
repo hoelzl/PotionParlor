@@ -1,7 +1,12 @@
 import json
 import logging
 
-from common import make_delivery_callback, known_potion_topics, run_processor, extract_msg_info
+from common import (
+    extract_msg_info,
+    known_potion_topics,
+    make_delivery_callback,
+    run_processor,
+)
 
 logging.basicConfig(level=logging.INFO)
 
