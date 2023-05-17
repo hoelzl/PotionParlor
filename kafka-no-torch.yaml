@@ -1,0 +1,19 @@
+name: kafka
+channels:
+  - conda-forge
+dependencies:
+  - python[version='>=3.11']
+  - autopep8
+  - black
+  - cookiecutter
+  - fastapi
+  - ipython
+  - mypy
+  - jinja2
+  - pip
+  - pytest
+  - pytest-cov
+  - python-build
+  - python-confluent-kafka
+  - typer
+  - uvicorn
