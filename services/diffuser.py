@@ -6,6 +6,19 @@ from IPython.display import display
 from random import choice, random
 from uuid import uuid1
 import torch
+import json
+import logging
+
+from common import (
+    create_offset_commit_info,
+    extract_msg_info,
+    known_potion_topics,
+    make_committing_callback,
+    run_processor,
+)
+
+logging.basicConfig(level=logging.INFO)
+
 
 # %%
 persons = [
@@ -162,10 +175,46 @@ def generate_and_display_image(
 
 
 # %%
-if __name__ == "__main__":
-    pass
-else:
-    pipeline = create_pipeline()
-    generate_and_display_image(pipeline)
+pipeline = create_pipeline()
+# generate_and_display_image(pipeline)
+
 
 # %%
+def process_message(consumer, producer, msg):
+    msg_topic, msg_key, msg_value = extract_msg_info(msg)
+
+    if msg_topic in known_potion_topics:
+        data = json.loads(msg_value)
+        num_images = data.get("quantity", 1)
+        id, prompt_file, image_file = generate_and_save_image(
+            pipeline=pipeline, output_dir=Path("/home/tc/tmp/images")
+        )
+        image = {
+            "quantity": num_images,
+            "order_id": data.get("order_id", 0),
+            "image_path": image_file.as_posix(),
+        }
+        logging.info(f"diffuser:generated image: {image}")
+        commit_info = create_offset_commit_info(msg)
+        note_image_printed(
+            consumer, producer, order_id=msg_key, potion=image, commit_info=commit_info
+        )
+    else:
+        logging.info(f"diffuser:unknown topic: {msg_topic}")
+
+
+def note_image_printed(consumer, producer, order_id, potion, commit_info):
+    topic = "printed-images"
+    producer.produce(
+        topic,
+        key=order_id,
+        value=json.dumps({"order_id": order_id, **potion}),
+        on_delivery=make_committing_callback(
+            "diffuser", logging, consumer, commit_info
+        ),
+    )
+    producer.flush()
+
+
+if __name__ == "__main__":
+    run_processor("diffuser", known_potion_topics, process_message)

@@ -21,7 +21,7 @@ def process_message(consumer, producer, msg):
         image = {
             "quantity": num_images,
             "order_id": data.get("order_id", 0),
-            "image_path": "/tmp/img-default.png"
+            "image_path": "/home/tc/tmp/img-default.png"
         }
         commit_info = create_offset_commit_info(msg)
         note_image_printed(
