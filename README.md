@@ -16,6 +16,7 @@ will need to run each service manually:
 |                     | `npm start`                                      |
 | `services`          | `uvicorn order_service:app --port 3001 --reload` |
 | `services`          | `python dispatcher.py`                           |
+| `services`          | `python brewer.py`                               |
 
 The commands marked with (*) only need to be run once.
 

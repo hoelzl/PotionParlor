@@ -1,16 +1,17 @@
 import json
 import logging
 
-from common import make_delivery_callback, known_potion_topics, run_processor
+from common import make_delivery_callback, known_potion_topics, run_processor, extract_msg_info
 
 logging.basicConfig(level=logging.INFO)
 
 
-def process_message(producer, msg_topic, msg_key, msg_value):
+def process_message(consumer, producer, msg):
+    msg_topic, msg_key, msg_value = extract_msg_info(msg)
     if msg_topic == "orders":
         dispatch_order(producer, msg_key, msg_value)
     else:
-        logging.info(f"Unknown topic: {msg_topic}")
+        logging.info(f"dispatcher:unknown topic: {msg_topic}")
 
 
 def dispatch_order(producer, msg_key, msg_value):

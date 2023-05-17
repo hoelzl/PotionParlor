@@ -17,12 +17,7 @@ class Order(BaseModel):
 @app.post("/order")
 async def create_order(order: Order):
     p = Producer(read_config(additional_sections=["order-service"]))
-    data = order.dict()
-    if data:
-        order_id = f"{data.get('order_id', 1):08}"
-    else:
-        order_id = "0" * 8
-    data["order_id"] = order_id
+    order_id, data = process_order_data(order)
     log.info(f"Sending order to Kafka: {order_id}, {data['line_items']}")
     p.produce(
         "received-orders",
@@ -41,3 +36,20 @@ async def create_order(order: Order):
     p.flush()
 
     return {"message": "Order sent to Kafka"}
+
+
+def process_order_data(order):
+    data = order.dict()
+    if data:
+        order_id = f"{data.get('order_id', 0):08}"
+        line_items = [
+            {**item, "item_no": i}
+            for i, item in enumerate(data.get("line_items", []), 1)
+        ]
+    else:
+        order_id = "0" * 8
+        line_items = []
+
+    data["order_id"] = order_id
+    data["line_items"] = line_items
+    return order_id, data
